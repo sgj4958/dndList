@@ -1,1 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+    body {
+        border: 1px solid #ddd;
+        margin: 5px;
+        overflow: hidden;
+        width: calc(100% - 10px);
+        height: calc(100vh - 10px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+        position: relative;
+		gap: 5px;
+    }
 
+    /* //// */
+
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		list-style: none;
+	}
+
+	ul {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		width: 200px;
+		border: 1px solid #eee;
+		border-radius: 5px;
+		padding: 5px;
+		min-height: 70px;
+
+		li {
+			width: 100%;
+			height: 60px;
+			border: 1px solid #ccc;
+			border-radius: inherit;
+			padding: inherit;
+			overflow: hidden;
+			align-items: center;
+			justify-items: center;
+			display: grid;
+			grid: 
+			"a b ." 1fr
+			"a c ." 1fr
+			/ 1.5fr 1fr 1fr;
+			position: relative;
+			
+			div {
+				width: 100%;
+				height: 100%;
+				position: relative;
+				grid-area: a;
+				display: flex;
+				justify-content: center;
+				margin-right: 10px;
+
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: contain;
+					aspect-ratio: 1;
+				}
+
+				&::after {
+					content: "";
+					width: 1px;
+					height: 100%;
+					background: #ccc5;
+					right: 0;
+					position: absolute;
+				}
+			}
+			p {
+				grid-area: b;
+				justify-self: self-start;
+				color: #aaa;
+				font-size: 0.8em;
+			}
+			span {
+				grid-area: c;
+				justify-self: self-end;
+				color: #333;
+				font-size: 0.9em;
+
+				&::after {
+					content: " ￦";
+					font-size: 0.8em;
+					opacity: .7;
+				}
+			}
+
+			&::after {
+				content: "\2263";
+				position: absolute;
+				right: 10px;
+				color: #5555;
+				cursor: grab;
+			}
+			&:focus {
+				outline: 1px solid color-mix(in srgb, skyblue 70%, transparent);
+				outline-offset: -1px;
+			}
+			&.drag {
+				opacity: 0.3;
+			}
+			view-transition-name: match-element;
+		}
+	}
+	
+	@keyframes vibe-up {
+		0% {transform: translateY(-5px);}
+		75% {transform: translateY(1px);}
+		100% {transform: none;}
+	}
+	@keyframes vibe-down {
+		0% {transform: translateY(5px);}
+		75% {transform: translateY(-1px);}
+		100% {transform: none;}
+	}
+	::view-transition-new(.up) {
+		animation: vibe-up .3s .1s;
+	}
+	::view-transition-new(.down) {
+		animation: vibe-down .3s .1s;
+	}
+    </style>
+</head>
+
+<body>
+
+	<ul>
+		<li>
+			<div><img src="sample/네오.webp"></div>
+			<p>네오</p>
+			<span>150</span>
+		</li>
+		<li>
+			<div><img src="sample/라이언.webp"></div>
+			<p>라이언</p>
+			<span>400</span>
+		</li>
+		<li>
+			<div><img src="sample/무지.webp"></div>
+			<p>무지</p>
+			<span>210</span>
+		</li>
+		<li>
+			<div><img src="sample/어피치.webp"></div>
+			<p>어피치</p>
+			<span>480</span>
+		</li>
+		<li>
+			<div><img src="sample/제이지.webp"></div>
+			<p>제이지</p>
+			<span>460</span>
+		</li>
+		<li>
+			<div><img src="sample/춘식이.webp"></div>
+			<p>춘식이</p>
+			<span>500</span>
+		</li>
+		<li>
+			<div><img src="sample/콘.webp"></div>
+			<p>콘</p>
+			<span>100</span>
+		</li>
+		<li>
+			<div><img src="sample/튜브.webp"></div>
+			<p>튜브</p>
+			<span>200</span>
+		</li>
+		<li>
+			<div><img src="sample/프로도.webp"></div>
+			<p>프로도</p>
+			<span>700</span>
+		</li>
+	</ul>
+
+	<ul></ul>
+
+</body>
+<script>
+	let dragElement = null
+	const setVibe = direction => document.querySelectorAll("li").forEach(e => e.style.viewTransitionClass = e.parentElement == dragElement.parentElement ? direction : "none")
+	document.querySelectorAll("li").forEach(li => {
+		li.setAttribute("draggable", true)
+		li.setAttribute("tabindex", 0)
+		li.addEventListener("dragstart", event => {
+			setTimeout(() => li.classList.add("drag"))
+			dragElement = li
+			li.addEventListener("dragend", () => dragElement = null ?? li.classList.remove("drag"), {once: true})
+		})
+		const swap = () => li.getBoundingClientRect().y > dragElement.getBoundingClientRect().y ? li.after(dragElement) ?? setVibe("up") : li.before(dragElement) ?? setVibe("down")
+		li.addEventListener("dragover", event => {
+			event.preventDefault()
+			event.dataTransfer.dropEffect = "move"
+			if(li == dragElement) return
+			document.startViewTransition(swap)
+		})
+	})
+	document.querySelectorAll("ul").forEach(ul => ul.addEventListener("dragenter", () => {
+		if(ul.childElementCount) return
+		else document.startViewTransition(() => ul.prepend(dragElement))
+	}))
+</script>
+</html>
